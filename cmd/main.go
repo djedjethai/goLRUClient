@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/djedjethai/clientGeneration0/pkg/config"
 	pb "github.com/djedjethai/clientGeneration0/pkg/proto/keyvalue"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
+	// "net"
 	"os"
 	"strings"
 	"time"
@@ -12,8 +15,26 @@ import (
 
 func main() {
 
-	conn, err := grpc.Dial("127.0.0.1:50051",
-		grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(time.Second))
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CertFile: config.ClientCertFile,
+		KeyFile:  config.ClientKeyFile,
+		CAFile:   config.CAFile,
+	})
+	if err != nil {
+		log.Fatal("Error set the client: ", err)
+	}
+	clientCreds := credentials.NewTLS(clientTLSConfig)
+
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(clientCreds),
+		grpc.WithBlock(),
+		grpc.WithTimeout(time.Second),
+	}
+
+	conn, err := grpc.DialContext(ctx, "127.0.0.1:50051", opts...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -27,7 +48,7 @@ func main() {
 		value = strings.Join(os.Args[3:], "")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	switch action {
@@ -62,5 +83,4 @@ func main() {
 	default:
 		log.Fatalf("Syntax: go run [get|put|delete|getkeys] key value ...")
 	}
-
 }

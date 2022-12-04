@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
+
 	"github.com/djedjethai/clientGeneration0/pkg/config"
 	pb "github.com/djedjethai/clientGeneration0/pkg/proto/keyvalue"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"log"
+
 	// "net"
 	"os"
 	"strings"
@@ -60,7 +63,9 @@ func main() {
 
 		log.Printf("Get %s returns: %s", key, r.Value)
 	case "put":
-		_, err := client.Put(ctx, &pb.PutRequest{Key: key, Value: value})
+		_, err := client.Put(ctx, &pb.PutRequest{
+			Records: &pb.Records{Key: key, Value: value},
+		})
 		if err != nil {
 			log.Fatalf("could not set value for key %s: %v", key, err)
 		}
@@ -80,6 +85,25 @@ func main() {
 		}
 
 		log.Printf("GetKeys returns: %s", r.Keys)
+	case "getkeysvalues":
+		stream, err := client.GetKeysValuesStream(ctx, &pb.Empty{})
+		if err != nil {
+			log.Fatalf("could not get keys: %v", err)
+		}
+
+		for {
+			select {
+			default:
+				// Recieve on the stream
+				res, err := stream.Recv()
+				if err != nil {
+					os.Exit(0)
+					// panic(err)
+				}
+				fmt.Println("The ressssult: ", res.Records)
+			}
+		}
+
 	default:
 		log.Fatalf("Syntax: go run [get|put|delete|getkeys] key value ...")
 	}

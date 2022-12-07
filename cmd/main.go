@@ -98,7 +98,6 @@ func main() {
 				res, err := stream.Recv()
 				if err != nil {
 					os.Exit(0)
-					// panic(err)
 				}
 				fmt.Println("The ressssult: ", res.Records)
 			}

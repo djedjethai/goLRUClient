@@ -26,7 +26,7 @@ func configFile(filename string) string {
 	if err != nil {
 		panic(err)
 	}
-	return filepath.Join(dir, "../..", ".generation", filename)
+	return filepath.Join(dir, "../", ".generation", filename)
 
 	// homeDir, err := os.UserHomeDir()
 	// if err != nil {

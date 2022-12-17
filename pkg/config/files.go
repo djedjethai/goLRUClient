@@ -21,9 +21,16 @@ func configFile(filename string) string {
 	if dir := os.Getenv("CONFIG_DIR"); dir != "" {
 		return filepath.Join(dir, filename)
 	}
-	homeDir, err := os.UserHomeDir()
+
+	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	return filepath.Join(homeDir, ".generation", filename)
+	return filepath.Join(dir, "../..", ".generation", filename)
+
+	// homeDir, err := os.UserHomeDir()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// return filepath.Join(homeDir, ".generation", filename)
 }

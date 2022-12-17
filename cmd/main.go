@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/djedjethai/clientGeneration0/pkg/config"
@@ -93,11 +95,16 @@ func main() {
 
 		for {
 			select {
+			case <-stream.Context().Done():
+				os.Exit(0)
 			default:
 				// Recieve on the stream
 				res, err := stream.Recv()
-				if err != nil {
+				if errors.Is(err, io.EOF) {
 					os.Exit(0)
+				}
+				if err != nil {
+					os.Exit(1)
 				}
 				fmt.Println("The ressssult: ", res.Records)
 			}
